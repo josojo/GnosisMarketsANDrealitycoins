@@ -1,0 +1,96 @@
+{
+  "contract_name": "OracleAnswers",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "hashid_",
+          "type": "bytes32"
+        },
+        {
+          "name": "answer_",
+          "type": "uint256"
+        }
+      ],
+      "name": "addAnswer",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "finalize",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "hashid_",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getAnswer",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "realityToken",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "finished",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "payable": false,
+      "type": "constructor"
+    }
+  ],
+  "unlinked_binary": "0x6060604052341561000f57600080fd5b5b60038054600160a060020a03191633600160a060020a03161790555b5b6102dc8061003c6000396000f300606060405236156100755763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663079a7db3811461007a5780634bb278f3146100955780638a4599c7146100aa5780638da5cb5b146100d2578063b0aa06551461010e578063bef4876b1461014a575b600080fd5b341561008557600080fd5b610093600435602435610171565b005b34156100a057600080fd5b6100936101c4565b005b34156100b557600080fd5b6100c0600435610224565b60405190815260200160405180910390f35b34156100dd57600080fd5b6100e5610257565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b341561011957600080fd5b6100e5610273565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b341561015557600080fd5b61015d61028f565b604051901515815260200160405180910390f35b60035474010000000000000000000000000000000000000000900460ff161561019957600080fd5b600082815260208181526040808320849055600191829052909120805460ff191690911790555b5050565b6003543373ffffffffffffffffffffffffffffffffffffffff9081169116146101ec57600080fd5b6003805474ff00000000000000000000000000000000000000001916740100000000000000000000000000000000000000001790555b565b60008181526001602052604081205460ff16151561024157600080fd5b506000818152602081905260409020545b919050565b60035473ffffffffffffffffffffffffffffffffffffffff1681565b60025473ffffffffffffffffffffffffffffffffffffffff1681565b60035474010000000000000000000000000000000000000000900460ff16815600a165627a7a72305820cafcc9b0c7c4dc62e8323da0de3e4be92a457d11571629644a65a11084ac2c1f0029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1506813950953
+}
