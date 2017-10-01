@@ -6,7 +6,7 @@ contract OracleRequests{
     struct OracleRequest{
         address from;
         bytes32 rootbranchhash;
-        bytes32 oracleRequestDescription;
+        string oracleRequestDescription;
     }
    mapping(bytes32 =>OracleRequest) oracleRequests;
    address public realityToken;
@@ -14,7 +14,7 @@ contract OracleRequests{
      realityToken=realityToken_;
    }
 
-    function pushRequest( bytes32 rootbranchhash_, bytes32 oracleRequestDescription_)  returns (bytes32){
+    function pushRequest( bytes32 rootbranchhash_, string oracleRequestDescription_)  returns (bytes32){
         //request some kind of fee
         require(RealityToken(realityToken).transferFrom(msg.sender,this,1,rootbranchhash_));
         bytes32 hashid =sha3(block.number,rootbranchhash_,oracleRequestDescription_,msg.sender);

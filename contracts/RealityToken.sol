@@ -4,7 +4,7 @@ contract RealityToken {
 
     event Approval(address indexed _owner, address indexed _spender, uint _value, bytes32 branch);
     event Transfer(address indexed _from, address indexed _to, uint _value, bytes32 branch);
-
+    event BranchCreated(bytes32 hash, address data_cntrct);
     struct Branch {
         bytes32 parent_hash; // Hash of the parent branch.
         bytes32 merkle_root; // Merkle root of the data we commit to
@@ -55,6 +55,7 @@ contract RealityToken {
 
         branches[branch_hash] = Branch(parent_branch_hash, merkle_root, data_cntrct, now, window);
         window_branches[window].push(branch_hash);
+        BranchCreated(branch_hash,data_cntrct);
         return branch_hash;
     }
 
@@ -149,7 +150,27 @@ contract RealityToken {
 
         return true;
     }
-    function getDataContract(bytes32 _branch) returns(address){
-      return branches[_branch].data_cntrct;
+    function getDataContract(bytes32 _branch)
+    public constant returns(address){
+       return branches[_branch].data_cntrct;
     }
+    function getWindowOfBranch(bytes32 _branchHash)
+    public constant returns (uint id) {
+        return branches[_branchHash].window;
+    }
+    function isBranchInBetweenBranches(bytes32 investigationHash,bytes32 closerToRootHash, bytes32 fartherToRootHash)
+    public constant returns(bool){
+      bytes32 iterationHash=closerToRootHash;
+      while(iterationHash!=fartherToRootHash){
+        if(investigationHash==iterationHash){
+          return true;
+        }
+        else{
+        iterationHash=branches[iterationHash].parent_hash;
+        }
+      }
+      return false;
+    }
+
+
 }

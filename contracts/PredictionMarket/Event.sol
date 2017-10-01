@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
-import "./Token.sol";
 import "./OutcomeToken.sol";
+import "./Token.sol";
 import "../OracleRequests.sol";
 import "../RealityToken.sol";
 import "../OracleAnswers.sol";
@@ -46,6 +46,7 @@ contract Event {
       require(address(_realityToken) != 0 && address(_oracleRequestContract) != 0 && outcomeCount >= 2);
       realityToken=_realityToken;
       initialRealityTokenBranch=_branchId;
+      requestHashSet=false;
       // Store Input
       oracleRequestContract=_oracleRequestContract;
       // Create an outcome token for each outcome
@@ -54,33 +55,34 @@ contract Event {
           outcomeTokens.push(outcomeToken);
           OutcomeTokenCreation(outcomeToken, i);
       }
+
     }
-    bytes32 oracleRequestHashid;
-    bool requestHashSet=false;
-    function createOracleRequest(bytes32 oracleRequestDescription)  {
-      // testing only
-      //bytes32 oracleRequestDescription='af';
+    bytes32 public oracleRequestHashId;
+    bool requestHashSet;
+    event OracleRequestDone(bytes32 hash);
+    function createOracleRequest(string oracleRequestDescription) returns (bytes32) {
       require(!requestHashSet);
       RealityToken R=RealityToken(realityToken);
-      // Create OracleRquest
       require( R.transferFrom(msg.sender,this, 1,initialRealityTokenBranch));
       require( R.approve(oracleRequestContract,1,initialRealityTokenBranch));
-      oracleRequestHashid=OracleRequests(oracleRequestContract).pushRequest(initialRealityTokenBranch, oracleRequestDescription);
+      oracleRequestHashId=OracleRequests(oracleRequestContract).pushRequest(initialRealityTokenBranch, oracleRequestDescription);
       requestHashSet=true;
+      OracleRequestDone(oracleRequestHashId);
+      return oracleRequestHashId;
     }
     /// @dev Buys equal number of tokens of all outcomes, exchanging collateral tokens and sets of outcome tokens 1:1
     /// @param collateralTokenCount Number of collateral tokens
-    function buyAllOutcomes(uint collateralTokenCount, address _realityToken)
+    function buyAllOutcomes(uint collateralTokenCount)
         public
     {
         // Transfer collateral tokens to events contract
-        require(RealityToken(_realityToken).transferFrom(msg.sender, this, collateralTokenCount,initialRealityTokenBranch));
+        require(RealityToken(realityToken).transferFrom(msg.sender, this, collateralTokenCount,initialRealityTokenBranch));
         // Issue new outcome tokens to sender
         for (uint8 i = 0; i < outcomeTokens.length; i++)
             outcomeTokens[i].issue(msg.sender, collateralTokenCount);
         OutcomeTokenSetIssuance(msg.sender, collateralTokenCount);
     }
-
+event A(address a);
     /// @dev Sets winning event outcome
     function setOutcome(bytes32 _realityTokenBranch)
         public
@@ -88,7 +90,9 @@ contract Event {
         // Winning outcome is not set yet in event contract but in oracle contract
         require(!realityTokens[_realityTokenBranch].isOutcomeSet);
         // Set winning outcome
-        uint outcome=OracleAnswers(RealityToken(realityToken).getDataContract(_realityTokenBranch)).getAnswer(_realityTokenBranch);
+        address a=RealityToken(realityToken).getDataContract(_realityTokenBranch);
+        A(a);
+        uint outcome=OracleAnswers(a).getAnswer(oracleRequestHashId);
         realityTokens[_realityTokenBranch].outcome = outcome;
         realityTokens[_realityTokenBranch].isOutcomeSet = true;
         OutcomeAssignment(outcome, _realityTokenBranch);
@@ -131,26 +135,34 @@ contract Event {
             outcomeTokenDistribution[i] = outcomeTokens[i].balanceOf(owner);
     }
 
-    mapping(address => mapping (bytes32 =>bool)) withDrawnCollateral;
+    mapping(address => mapping (bytes32 =>bytes32[])) withDrawnCollateral;
+    mapping(address => mapping (bytes32 =>uint[])) withDrawnCollateralFromWindow;
+
     /// @dev Exchanges sender's winning outcome tokens for collateral tokens
     /// @return Sender's winnings
-    function redeemWinnings(bytes32 realityTokenBranch_)
+    function redeemWinnings(bytes32 realityTokenBranch_,bytes32 realityTokenOracleInputBranch_)
         public
         returns (uint winnings)
     {
         // Winning outcome has to be set
         // getting payouts is only possible in the branch, which set the answer
-        require(realityTokens[realityTokenBranch_].isOutcomeSet);
+        require(realityTokens[realityTokenOracleInputBranch_].isOutcomeSet);
 
 
         // Calculate winnings
-        winnings = outcomeTokens[uint(realityTokens[realityTokenBranch_].outcome)].balanceOf(msg.sender);
+        winnings = outcomeTokens[uint(realityTokens[realityTokenOracleInputBranch_].outcome)].balanceOf(msg.sender);
         // Revoke tokens from winning outcome
-        outcomeTokens[uint(realityTokens[realityTokenBranch_].outcome)].setWithdrawnInOneBranch(msg.sender);
-        require(!withDrawnCollateral[msg.sender][realityTokenBranch_]);
+        outcomeTokens[uint(realityTokens[realityTokenOracleInputBranch_].outcome)].setWithdrawnInOneBranch(msg.sender);
+        uint currentwindow=RealityToken(realityToken).getWindowOfBranch(realityTokenBranch_);
+        for(uint i=0;i<withDrawnCollateral[msg.sender][realityTokenOracleInputBranch_].length;i++){
+        require(!RealityToken(realityToken).isBranchInBetweenBranches(withDrawnCollateral[msg.sender][realityTokenOracleInputBranch_][i],realityTokenOracleInputBranch_,realityTokenBranch_));
+        require(currentwindow>=withDrawnCollateralFromWindow[msg.sender][realityTokenOracleInputBranch_][i]);
+        }
         // Payout winnings
+        withDrawnCollateral[msg.sender][realityTokenOracleInputBranch_].push(realityTokenBranch_);
+        withDrawnCollateralFromWindow[msg.sender][realityTokenOracleInputBranch_].push(RealityToken(realityToken).getWindowOfBranch(realityTokenBranch_));
+
         require(RealityToken(realityToken).transfer(msg.sender, winnings,realityTokenBranch_));
-        withDrawnCollateral[msg.sender][realityTokenBranch_]=true;
         WinningsRedemption(msg.sender, winnings, realityTokenBranch_);
     }
 
